@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
 >
 > 该程序的思路的流程图;
 >
-> ![image-20221018214030001](D:\assignment\glimmer\notes\6.S081 OS Labs\image-20221018214030001.png)
+> ![primes](https://swtch.com/~rsc/thread/sieve.gif)
 >
 > 向每个质数分配一个子进程，用pipe管道向下一个子进程传输不是自己的倍数的数。
 
