@@ -338,6 +338,8 @@ main(int argc, char *argv[])
 - pthread_cond_wait：该函数会阻塞条件变量，并释放该线程拥有的锁，以便其他线程可以使用。如果要恢复，必须要线程来唤醒他。
 - pthread_cond_signal或pthread_cond_broadcast：两个函数的作用都是解除被wait阻塞的线程（条件锁相同），并且恢复该线程拥有的锁。区别是，signal只是释放一个或者多个线程，而broadcast会释放全部线程。
 
+虚假唤醒：当使用条件变量的时候，可能存在虚假唤醒的情况。例子，有一个生产者，生产一个产品后进行了一次广播，但是此时有三个消费者，这三个消费都被唤醒了，但是只能有一个人能买这个产品；所以，我们需要用`while`语句来检查当前唤醒是否满足唤醒条件。
+
 了解了这两个函数的额作用之后，代码也非常好写，逻辑过程就不再赘述了，关键代码如下：
 
 ```c
@@ -347,11 +349,14 @@ barrier()
   pthread_mutex_lock(&bstate.barrier_mutex);
   bstate.nthread++;
   if (bstate.nthread == nthread) {
-      bstate.round++;
-      bstate.nthread = 0;
-      pthread_cond_broadcast(&bstate.barrier_cond);
+    bstate.round++;
+    bstate.nthread = 0;
+    pthread_cond_broadcast(&bstate.barrier_cond);
   } else {
+    int round = bstate.round;
+    while (round == bstate.round) {
       pthread_cond_wait(&bstate.barrier_cond, &bstate.barrier_mutex);
+    }
   }
   pthread_mutex_unlock(&bstate.barrier_mutex);
 }
